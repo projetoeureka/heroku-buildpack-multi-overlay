@@ -34,9 +34,12 @@ for BUILDPACK in $(cat $1/.buildpacks); do
 
     chmod +x $dir/bin/{detect,compile,release}
 
+    set +e
     framework=$($dir/bin/detect $1)
+    exit_code=$?
+    set -e
 
-    if [ $? == 0 ]; then
+    if [ $exit_code == 0 ]; then
       echo "=====> Detected Framework: $framework"
       $dir/bin/compile $1 $2
 

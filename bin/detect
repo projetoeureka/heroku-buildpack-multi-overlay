@@ -1,9 +1,6 @@
 #!/usr/bin/env bash
 
-if [ -f $1/.buildpacks ]; then
-  echo "Multipack"
-  exit 0
-else
-  echo "no .buildpacks file"
-  exit 1
-fi
+echo "Heroku Overlay-Multi: a way to work with multiple apps and buildpacks in the same repository, "
+exit 0
+
+

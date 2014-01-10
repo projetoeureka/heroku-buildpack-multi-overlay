@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 
-set -e
+BUILD_DIR=$1
+
+shopt -s nullglob  # if files don't exist, expand globs to zero arguments instead to themselves
 
 function indent() {
   c='s/^/       /'
@@ -10,9 +12,30 @@ function indent() {
   esac
 }
 
+if [ -z "$OVERLAY" ]; then
+  echo "'OVERLAY' environment variable not set, aborting..."
+  exit 1
+elif [ ! -f $1/.buildpacks ] && [ ! -f $1/.buildpacks.$OVERLAY ]; then
+  echo "no .buildpacks neither .buildpacks.overlay-string file"
+  exit 1
+fi
+
+echo "-----> Overlaying '*.$OVERLAY' over repository root"
+
+cd $BUILD_DIR
+
+for from in *.$OVERLAY .*.$OVERLAY bin/*.$OVERLAY; do
+  to=${from/%.$OVERLAY/}
+  echo "copying '$from' to '$to'" | indent
+  cp $from $to
+done
+
+shopt -u nullglob  # going back to the default behavior, for easiness of detecting simple errors.
+set -e
+
 unset GIT_DIR
 
-for BUILDPACK in $(cat $1/.buildpacks); do
+for BUILDPACK in $(cat $BUILD_DIR/.buildpacks); do
   dir=$(mktemp -t buildpackXXXXX)
   rm -rf $dir
 
@@ -53,4 +76,4 @@ for BUILDPACK in $(cat $1/.buildpacks); do
 done
 
 echo "Using release configuration from last framework $framework:" | indent
-cat $1/last_pack_release.out | indent
+cat $BUILD_DIR/last_pack_release.out | indent

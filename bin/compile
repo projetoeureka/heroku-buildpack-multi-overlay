@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 BUILD_DIR=$1
+ENV_DIR=$3
 
 shopt -s nullglob  # if files don't exist, expand globs to zero arguments instead to themselves
 
@@ -12,10 +13,14 @@ function indent() {
   esac
 }
 
-if [ -z "$OVERLAY" ]; then
+if [ ! -e "$ENV_DIR/OVERLAY" ]; then
   echo "'OVERLAY' environment variable not set, aborting..."
   exit 1
-elif [ ! -f $1/.buildpacks ] && [ ! -f $1/.buildpacks.$OVERLAY ]; then
+fi
+
+OVERLAY=$(<$ENV_DIR/OVERLAY)
+
+if [ ! -f $1/.buildpacks ] && [ ! -f $1/.buildpacks.$OVERLAY ]; then
   echo "no .buildpacks neither .buildpacks.overlay-string file"
   exit 1
 fi
@@ -64,7 +69,7 @@ for BUILDPACK in $(cat $BUILD_DIR/.buildpacks); do
 
     if [ $exit_code == 0 ]; then
       echo "=====> Detected Framework: $framework"
-      $dir/bin/compile $1 $2
+      $dir/bin/compile $1 $2 $3
 
       if [ $? != 0 ]; then
         exit 1
